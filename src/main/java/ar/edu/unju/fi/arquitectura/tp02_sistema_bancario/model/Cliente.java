@@ -44,6 +44,13 @@ public class Cliente extends AuditableEntity {
     @Column(nullable = false, unique = true, length = 100)
     private String email;
 
+    @Column(nullable = false, unique = true, length = 100)
+    private String direccion;
+
+    @Column(nullable = false, unique = true, length = 20)
+    private String telefono;
+
+
     /**
      * Colección de cuentas bancarias asociadas al cliente.
      * Mapeo bidireccional con eliminación en cascada y de huérfanos.
