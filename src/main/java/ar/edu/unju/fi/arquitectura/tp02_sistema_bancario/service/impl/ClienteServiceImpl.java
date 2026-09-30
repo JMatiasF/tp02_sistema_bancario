@@ -2,6 +2,7 @@ package ar.edu.unju.fi.arquitectura.tp02_sistema_bancario.service.impl;
 
 import ar.edu.unju.fi.arquitectura.tp02_sistema_bancario.dto.ClienteRequestDto;
 import ar.edu.unju.fi.arquitectura.tp02_sistema_bancario.dto.ClienteResponseDto;
+import ar.edu.unju.fi.arquitectura.tp02_sistema_bancario.exception.RecursoNoEncontradoException;
 import ar.edu.unju.fi.arquitectura.tp02_sistema_bancario.model.Cliente;
 import ar.edu.unju.fi.arquitectura.tp02_sistema_bancario.repository.ClienteRepository;
 import ar.edu.unju.fi.arquitectura.tp02_sistema_bancario.service.ClienteService;
@@ -54,7 +55,7 @@ public class ClienteServiceImpl implements ClienteService {
     public ClienteResponseDto obtenerPorId(UUID id) {
         log.debug("Buscando cliente por ID: {}", id);
         Cliente cliente = clienteRepository.findById(id)
-                .orElseThrow(() -> new IllegalArgumentException("Cliente no encontrado con el ID: " + id));
+                .orElseThrow(() -> new RecursoNoEncontradoException("Cliente no encontrado con el ID: " + id));
         return mapearAResponseDto(cliente);
     }
 
@@ -63,7 +64,7 @@ public class ClienteServiceImpl implements ClienteService {
     public ClienteResponseDto obtenerPorCuil(String cuil) {
         log.debug("Buscando cliente por CUIL: {}", cuil);
         Cliente cliente = clienteRepository.findByCuil(cuil)
-                .orElseThrow(() -> new IllegalArgumentException("Cliente no encontrado con el CUIL: " + cuil));
+                .orElseThrow(() -> new RecursoNoEncontradoException("Cliente no encontrado con el CUIL: " + cuil));
         return mapearAResponseDto(cliente);
     }
 
@@ -115,6 +116,8 @@ public class ClienteServiceImpl implements ClienteService {
                 .id(cliente.getId())
                 .nombre(cliente.getNombre())
                 .cuil(cliente.getCuil())
+
+
                 .email(cliente.getEmail())
                 .direccion(cliente.getDireccion())
                 .telefono(cliente.getTelefono())
@@ -122,6 +125,5 @@ public class ClienteServiceImpl implements ClienteService {
                 .fechaModificacion(cliente.getFechaUltimaModificacion())
                 .build();
     }
-
 
 }
