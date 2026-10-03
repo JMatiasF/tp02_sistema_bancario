@@ -1,6 +1,7 @@
 package ar.edu.unju.fi.arquitectura.tp02_sistema_bancario.service;
 
-import ar.edu.unju.fi.arquitectura.tp02_sistema_bancario.model.CuentaBancaria;
+import ar.edu.unju.fi.arquitectura.tp02_sistema_bancario.dto.CuentaRequestDto;
+import ar.edu.unju.fi.arquitectura.tp02_sistema_bancario.dto.CuentaResponseDto;
 
 import java.util.List;
 
@@ -9,10 +10,10 @@ import java.util.List;
  * @since 23/09/2026
  */
 public interface CuentaBancariaService {
-    public CuentaBancaria crearCuenta(CuentaBancaria cuenta);
-    public List<CuentaBancaria> listCuenta();
-    public CuentaBancaria getByCbu(String cbu);
-    public CuentaBancaria getByAlias(String alias);
-    public CuentaBancaria updateCuenta(String cbu, CuentaBancaria cambios);
-    //void deleteCuenta(String cbu);
+    CuentaResponseDto crearCuenta(CuentaRequestDto request);
+    List<CuentaResponseDto> listarCuentas();
+    CuentaResponseDto obtenerPorCbu(String cbu);
+    CuentaResponseDto obtenerPorAlias(String alias);
+    CuentaResponseDto actualizarCuenta(String cbu, CuentaRequestDto request);
+    //void eliminarCuenta(String cbu);
 }
