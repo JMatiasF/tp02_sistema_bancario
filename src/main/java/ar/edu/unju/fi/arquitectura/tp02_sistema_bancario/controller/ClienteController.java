@@ -65,6 +65,11 @@ public class ClienteController {
         ClienteResponseDto cliente = clienteService.obtenerPorCuil(cuil);
         return ResponseEntity.ok(cliente);
     }
+    @GetMapping("/email/{email}")
+    public ResponseEntity<ClienteResponseDto> obtenerClientePorEmail(@PathVariable String email) {
+        ClienteResponseDto cliente = clienteService.obtenerPorEmail(email);
+        return ResponseEntity.ok(cliente);
+    }
 
     /**
      * Actualiza la información de un cliente existente.

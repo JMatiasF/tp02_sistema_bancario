@@ -67,6 +67,15 @@ public class ClienteServiceImpl implements ClienteService {
                 .orElseThrow(() -> new RecursoNoEncontradoException("Cliente no encontrado con el CUIL: " + cuil));
         return mapearAResponseDto(cliente);
     }
+    @Override
+    @Transactional(readOnly = true)
+    public ClienteResponseDto obtenerPorEmail(String email){
+        log.debug("Buscando cliente por Email: {}", email);
+        Cliente cliente = clienteRepository.findByEmail(email)
+                .orElseThrow(() -> new RecursoNoEncontradoException("Cliente no encontrado con el Email: " + email));
+        return mapearAResponseDto(cliente);
+
+    }
 
     @Override
     @Transactional(readOnly = true)

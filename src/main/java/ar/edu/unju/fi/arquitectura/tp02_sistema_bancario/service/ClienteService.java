@@ -15,6 +15,7 @@ public interface ClienteService {
     ClienteResponseDto crearCliente(ClienteRequestDto requestDto);
     ClienteResponseDto obtenerPorId(UUID id);
     ClienteResponseDto obtenerPorCuil(String cuil);
+    ClienteResponseDto obtenerPorEmail(String email);
     ClienteResponseDto actualizarCliente(UUID id, ClienteRequestDto requestDto);
     List<ClienteResponseDto> listClientes();
     void eliminarPorId(UUID id);
