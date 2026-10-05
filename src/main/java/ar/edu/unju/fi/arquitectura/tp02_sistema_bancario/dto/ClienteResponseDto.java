@@ -1,5 +1,7 @@
 package ar.edu.unju.fi.arquitectura.tp02_sistema_bancario.dto;
 
+import ar.edu.unju.fi.arquitectura.tp02_sistema_bancario.model.EstadoCliente;
+import ar.edu.unju.fi.arquitectura.tp02_sistema_bancario.model.RolCliente;
 import lombok.*;
 
 import java.time.LocalDateTime;
@@ -38,4 +40,14 @@ public class ClienteResponseDto {
 
     /** Fecha y hora de la última actualización de los datos del cliente. */
     private LocalDateTime fechaModificacion;
+
+    /** Rol del Cliente. */
+    private RolCliente rol;
+
+    /** Estado del Cleinte. */
+    private EstadoCliente estado;
+
+    /* Si este cliente es un adherente, devolvemos el ID de su titular
+       para saber a quién pertenece. Si es titular, esto irá en null. */
+    private UUID titularId;
 }

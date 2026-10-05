@@ -4,13 +4,17 @@ import ar.edu.unju.fi.arquitectura.tp02_sistema_bancario.dto.ClienteRequestDto;
 import ar.edu.unju.fi.arquitectura.tp02_sistema_bancario.dto.ClienteResponseDto;
 import ar.edu.unju.fi.arquitectura.tp02_sistema_bancario.exception.RecursoNoEncontradoException;
 import ar.edu.unju.fi.arquitectura.tp02_sistema_bancario.model.Cliente;
+import ar.edu.unju.fi.arquitectura.tp02_sistema_bancario.model.EstadoCliente;
+import ar.edu.unju.fi.arquitectura.tp02_sistema_bancario.model.RolCliente;
 import ar.edu.unju.fi.arquitectura.tp02_sistema_bancario.repository.ClienteRepository;
 import ar.edu.unju.fi.arquitectura.tp02_sistema_bancario.service.ClienteService;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.transaction.annotation.Transactional;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.UUID;
 import java.util.stream.Collectors;
@@ -24,6 +28,9 @@ import java.util.stream.Collectors;
 @RequiredArgsConstructor
 public class ClienteServiceImpl implements ClienteService {
     private final ClienteRepository clienteRepository;
+
+    // NUEVO: Inyectamos el publicador de eventos para el futuro envío de emails
+    private final ApplicationEventPublisher eventPublisher;
 
     @Override
     @Transactional
@@ -42,10 +49,17 @@ public class ClienteServiceImpl implements ClienteService {
                 .email(requestDto.getEmail())
                 .direccion(requestDto.getDireccion())
                 .telefono(requestDto.getTelefono())
+                //Configuración de Alta
+                .rol(RolCliente.TITULAR)
+                .estado(EstadoCliente.PENDIENTE_ACTIVACION)
+                .tokenActivacion(UUID.randomUUID().toString())
+                .fechaExpiracionToken(LocalDateTime.now().plusHours(24))
                 .build();
 
         clienteNuevo = clienteRepository.save(clienteNuevo);
-        log.info("Cliente creado correctamente.");
+        log.info("Cliente TITULAR creado correctamente.");
+
+        // TODO: eventPublisher.publishEvent(new ClienteCreadoEvent(this, clienteNuevo));
 
         return mapearAResponseDto(clienteNuevo);
     }
@@ -119,19 +133,91 @@ public class ClienteServiceImpl implements ClienteService {
         log.info("Cliente con ID {} eliminado correctamente", id);
     }
 
+    /*
+        Nuevos metodos para adherente
+     */
+
+    @Override
+    @Transactional
+    public ClienteResponseDto crearAdherente(UUID idTitular, ClienteRequestDto requestDto) {
+        log.info("Creando adherente para el titular ID: {}", idTitular);
+
+        // 1. Validar titular
+        Cliente titular = clienteRepository.findById(idTitular)
+                .orElseThrow(() -> new RecursoNoEncontradoException("Cliente titular no encontrado con ID: " + idTitular));
+
+        if (titular.getRol() != RolCliente.TITULAR) {
+            log.warn("Intento de asociar adherente a una cuenta que no es titular.");
+            throw new IllegalArgumentException("El cliente especificado no es un Titular válido.");
+        }
+
+        // 2. Validar que el adherente no exista ya en el sistema (reutilizando tu lógica)
+        if (clienteRepository.existsByCuilOrEmail(requestDto.getCuil(), requestDto.getEmail())) {
+            throw new IllegalArgumentException("El CUIL o email del adherente ya está registrado en el sistema.");
+        }
+
+        // 3. Crear adherente
+        Cliente adherenteNuevo = Cliente.builder()
+                .nombre(requestDto.getNombre())
+                .cuil(requestDto.getCuil())
+                .email(requestDto.getEmail())
+                .direccion(requestDto.getDireccion())
+                .telefono(requestDto.getTelefono())
+                .rol(RolCliente.ADHERENTE)
+                .titular(titular)
+                .estado(EstadoCliente.PENDIENTE_ACTIVACION)
+                .tokenActivacion(UUID.randomUUID().toString())
+                .fechaExpiracionToken(LocalDateTime.now().plusHours(24))
+                .build();
+
+        adherenteNuevo = clienteRepository.save(adherenteNuevo);
+        log.info("Adherente creado y vinculado correctamente.");
+
+        // TODO: eventPublisher.publishEvent(new ClienteCreadoEvent(this, adherenteNuevo));
+
+        return mapearAResponseDto(adherenteNuevo);
+    }
+
+    @Override
+    @Transactional
+    public void activarClientePorToken(String token) {
+        log.info("Intentando activar cuenta con token");
+
+        Cliente cliente = clienteRepository.findByTokenActivacion(token)
+                .orElseThrow(() -> new RecursoNoEncontradoException("Token inválido o inexistente"));
+
+        if (cliente.getEstado() == EstadoCliente.ACTIVO) {
+            throw new IllegalArgumentException("La cuenta ya se encuentra activa");
+        }
+
+        if (LocalDateTime.now().isAfter(cliente.getFechaExpiracionToken())) {
+            throw new IllegalArgumentException("El token de activación ha expirado");
+        }
+
+        cliente.setEstado(EstadoCliente.ACTIVO);
+        cliente.setTokenActivacion(null); // Limpiamos por seguridad
+
+        clienteRepository.save(cliente);
+        log.info("Cuenta activada exitosamente para el cliente ID: {}", cliente.getId());
+    }
+
+
     // Método centralizado para el mapeo Entity -> DTO
     private ClienteResponseDto mapearAResponseDto(Cliente cliente) {
         return ClienteResponseDto.builder()
                 .id(cliente.getId())
                 .nombre(cliente.getNombre())
                 .cuil(cliente.getCuil())
-
-
                 .email(cliente.getEmail())
                 .direccion(cliente.getDireccion())
                 .telefono(cliente.getTelefono())
                 .fechaCreacion(cliente.getFechaCreacion())
                 .fechaModificacion(cliente.getFechaUltimaModificacion())
+                // NUEVOS CAMPOS TP5
+                .rol(cliente.getRol())
+                .estado(cliente.getEstado())
+                // Operador ternario: si tiene titular mapea el ID, si no (es titular) devuelve null
+                .titularId(cliente.getTitular() != null ? cliente.getTitular().getId() : null)
                 .build();
     }
 

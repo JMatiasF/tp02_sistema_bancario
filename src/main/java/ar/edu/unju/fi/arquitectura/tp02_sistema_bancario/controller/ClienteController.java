@@ -96,5 +96,15 @@ public class ClienteController {
         clienteService.eliminarPorId(id);
         return ResponseEntity.noContent().build();
     }
+
+    @PostMapping("/{idTitular}/adherentes")
+    public ResponseEntity<ClienteResponseDto> vincularAdherente(
+            @PathVariable UUID idTitular,
+            @Valid @RequestBody ClienteRequestDto requestDto) {
+
+        ClienteResponseDto adherenteCreado = clienteService.crearAdherente(idTitular, requestDto);
+        return ResponseEntity.status(HttpStatus.CREATED).body(adherenteCreado);
+    }
+
 }
 

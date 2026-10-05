@@ -19,4 +19,10 @@ public interface ClienteService {
     ClienteResponseDto actualizarCliente(UUID id, ClienteRequestDto requestDto);
     List<ClienteResponseDto> listClientes();
     void eliminarPorId(UUID id);
+    /**
+     * Crea un cliente con rol ADHERENTE y lo vincula a la cuenta del TITULAR.
+     */
+    ClienteResponseDto crearAdherente(UUID idTitular, ClienteRequestDto requestDto);
+    /** Activa la cuenta verificando el token */
+    void activarClientePorToken(String token);
 }
