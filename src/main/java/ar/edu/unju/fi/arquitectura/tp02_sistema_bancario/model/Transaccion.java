@@ -52,4 +52,8 @@ public class Transaccion extends AuditableEntity{
     @ManyToOne(fetch = FetchType.LAZY, optional = false)
     @JoinColumn(name = "cuenta_bancaria_id", nullable = false)
     private CuentaBancaria cuentaBancaria;
+
+    @ManyToOne(fetch = FetchType.LAZY, optional = false)
+    @JoinColumn(name = "usuario_operador_id", nullable = false)
+    private Cliente usuarioOperador;
 }

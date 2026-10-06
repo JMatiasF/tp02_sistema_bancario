@@ -1,8 +1,14 @@
 package ar.edu.unju.fi.arquitectura.tp02_sistema_bancario.repository;
 
+import ar.edu.unju.fi.arquitectura.tp02_sistema_bancario.model.TipoTransaccion;
 import ar.edu.unju.fi.arquitectura.tp02_sistema_bancario.model.Transaccion;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
+
+import org.springframework.data.jpa.repository.Query;
+import org.springframework.data.repository.query.Param;
+import java.math.BigDecimal;
+import java.time.LocalDateTime;
 
 import java.util.List;
 import java.util.UUID;
@@ -28,4 +34,23 @@ public interface TransaccionRepository extends JpaRepository<Transaccion, UUID> 
      * @return Lista de transacciones asociadas a la cuenta correspondiente.
      */
     List<Transaccion> findByCuentaBancariaCbu(String cbu);
+
+
+    /**
+     * Consulta específica para el acumulado diario
+     **/
+    @Query("""
+    SELECT COALESCE(SUM(t.monto), 0)
+    FROM Transaccion t
+    WHERE t.usuarioOperador.id = :clienteId
+      AND t.tipo = :tipo
+      AND t.fechaCreacion >= :inicio
+      AND t.fechaCreacion < :fin
+""")
+    BigDecimal sumarMontoPorUsuarioYTipoEnPeriodo(
+            @Param("clienteId") UUID clienteId,
+            @Param("tipo") TipoTransaccion tipo,
+            @Param("inicio") LocalDateTime inicio,
+            @Param("fin") LocalDateTime fin
+    );
 }
