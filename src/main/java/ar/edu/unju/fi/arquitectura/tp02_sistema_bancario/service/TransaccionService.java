@@ -4,12 +4,16 @@ import ar.edu.unju.fi.arquitectura.tp02_sistema_bancario.dto.TransaccionRequestD
 import ar.edu.unju.fi.arquitectura.tp02_sistema_bancario.dto.TransaccionResponseDto;
 
 import java.util.List;
+import java.util.UUID;
 
 /**
  * @author Dell
  * @since 30/09/2026
  */
 public interface TransaccionService {
-    TransaccionResponseDto transferir(TransaccionRequestDto request);
+    TransaccionResponseDto transferir(UUID clienteId, TransaccionRequestDto request);
     List<TransaccionResponseDto> obtenerHistorialPorCbu(String cbu);
+
+    TransaccionResponseDto extraer(UUID clienteId, TransaccionRequestDto request);
+
 }

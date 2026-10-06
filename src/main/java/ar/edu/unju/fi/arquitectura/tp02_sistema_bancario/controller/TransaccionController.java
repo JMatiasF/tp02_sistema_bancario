@@ -5,10 +5,12 @@ import ar.edu.unju.fi.arquitectura.tp02_sistema_bancario.dto.TransaccionResponse
 import ar.edu.unju.fi.arquitectura.tp02_sistema_bancario.service.TransaccionService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
+import java.util.UUID;
 
 /**
  * @author JMatiasF
@@ -24,9 +26,11 @@ public class TransaccionController {
      * POST /api/v1/transacciones/transferir
      * Ejecuta una transferencia entre dos cuentas aplicando lógica de validación de saldo.
      */
-    @PostMapping("/transferir")
-    public ResponseEntity<TransaccionResponseDto> transferir(@Valid @RequestBody TransaccionRequestDto request) {
-        TransaccionResponseDto response = transaccionService.transferir(request);
+    @PostMapping("/transferir/{clienteId}")
+    public ResponseEntity<TransaccionResponseDto> transferir(
+            @PathVariable UUID clienteId,
+            @Valid @RequestBody TransaccionRequestDto request) {
+        TransaccionResponseDto response = transaccionService.transferir(clienteId, request);
         return ResponseEntity.ok(response);
     }
 
@@ -39,4 +43,16 @@ public class TransaccionController {
         List<TransaccionResponseDto> historial = transaccionService.obtenerHistorialPorCbu(cbu);
         return ResponseEntity.ok(historial);
     }
+    /**
+     * POST /api/v1/transacciones/extraer/{clienteId}
+     * Ejecuta una extracción validando el rol del cliente (Titular o Adherente) y sus topes diarios globales.
+     */
+    @PostMapping("/extraer/{clienteId}")
+    public ResponseEntity<TransaccionResponseDto> extraer(
+            @PathVariable UUID clienteId,
+            @Valid @RequestBody TransaccionRequestDto request) {
+        TransaccionResponseDto response = transaccionService.extraer(clienteId, request);
+        return new ResponseEntity<>(response, HttpStatus.CREATED);
+    }
+
 }

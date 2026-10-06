@@ -24,3 +24,11 @@ spring:
   sql:
     init:
       mode: always # Mantiene la ejecución de data.sql al iniciar
+
+  # Configuración de reglas de negocio del banco
+banco:
+  limites:
+    extraccion:
+      diaria:
+        titular: 100000.00
+        adherente: 70000.00

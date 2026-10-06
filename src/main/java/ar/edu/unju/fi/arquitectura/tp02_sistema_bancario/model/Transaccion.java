@@ -52,4 +52,13 @@ public class Transaccion extends AuditableEntity{
     @ManyToOne(fetch = FetchType.LAZY, optional = false)
     @JoinColumn(name = "cuenta_bancaria_id", nullable = false)
     private CuentaBancaria cuentaBancaria;
+
+    // --- NUEVO CAMPO PARA EL TP5 ---
+    /**
+     * Cliente (Titular o Adherente) que ejecutó físicamente la operación.
+     * Es crucial para calcular los topes diarios individuales.
+     */
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "cliente_id", nullable = false)
+    private Cliente cliente;
 }
