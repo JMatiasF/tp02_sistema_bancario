@@ -78,6 +78,11 @@ public class CuentaBancariaServiceImpl implements CuentaBancariaService {
             builder.clienteId(cuenta.getCliente().getId())
                     .nombreCliente(cuenta.getCliente().getNombre());
         }
+        if (cuenta.getCliente() != null) {
+            builder.clienteId(cuenta.getCliente().getId())
+                    .nombreCliente(cuenta.getCliente().getNombre())
+                    .rol(cuenta.getCliente().getRol()); // <-- ASIGNAR ROL
+        }
 
         if (cuenta instanceof CajaDeAhorro caja) {
             builder.tipoCuenta("CAJA_AHORRO")

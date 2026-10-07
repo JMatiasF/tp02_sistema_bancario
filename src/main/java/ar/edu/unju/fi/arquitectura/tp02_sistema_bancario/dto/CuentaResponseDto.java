@@ -1,6 +1,7 @@
 package ar.edu.unju.fi.arquitectura.tp02_sistema_bancario.dto;
 
 import ar.edu.unju.fi.arquitectura.tp02_sistema_bancario.model.EstadoCuenta;
+import ar.edu.unju.fi.arquitectura.tp02_sistema_bancario.model.RolCliente;
 import lombok.*;
 
 import java.math.BigDecimal;
@@ -47,6 +48,9 @@ public class CuentaResponseDto {
 
     // Identificador para saber qué tipo de cuenta es al listar
     private String tipoCuenta;
+
+    // Rol del Cliente
+    private RolCliente rol;
 
     // Campos de Caja de Ahorro (serán invisibles si son nulos)
     private BigDecimal tasaInteresAnual;
