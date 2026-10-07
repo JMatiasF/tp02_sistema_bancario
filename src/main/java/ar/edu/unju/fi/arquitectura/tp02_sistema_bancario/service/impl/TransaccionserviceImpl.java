@@ -79,7 +79,7 @@ public class TransaccionserviceImpl implements TransaccionService {
         }
 
         // 3. Verificación de saldo suficiente en la cuenta de origen
-        if (origen.getSaldo().compareTo(request.getMonto()) < 0) {
+        if (saldoDisponible.compareTo(request.getMonto()) < 0) {
             throw new SaldoInsuficienteException(
                     "Fondos insuficientes para efectuar la operación. Saldo disponible: " + origen.getSaldo());
         }
@@ -160,6 +160,16 @@ public class TransaccionserviceImpl implements TransaccionService {
                 .orElseThrow(() -> new RecursoNoEncontradoException(
                         "Cuenta bancaria no registrada con CBU: " + request.getCbuOrigen()));
 
+        // 2.1. Validar que si es ADHERENTE, solo extraiga de la cuenta de su TITULAR
+        if (cliente.getRol() == RolCliente.ADHERENTE) {
+            if (cliente.getTitular() == null) {
+                throw new IllegalArgumentException("El cliente adherente no tiene un titular asignado.");
+            }
+            if (!cuenta.getCliente().getId().equals(cliente.getTitular().getId())) {
+                throw new IllegalArgumentException("Un cliente adherente solo puede realizar extracciones sobre la cuenta bancaria de su titular.");
+            }
+        }
+
         // 3. Validar el tope diario acumulado antes de procesar
         validarTopeDiarioExtraccion(cliente, request.getMonto());
 
@@ -186,7 +196,7 @@ public class TransaccionserviceImpl implements TransaccionService {
         }
 
         // 4. Verificación de saldo suficiente
-        if (cuenta.getSaldo().compareTo(request.getMonto()) < 0) {
+        if (saldoDisponible.compareTo(request.getMonto()) < 0) {
             throw new SaldoInsuficienteException(
                     "Fondos insuficientes para efectuar la extracción. Saldo disponible: " + cuenta.getSaldo());
         }
