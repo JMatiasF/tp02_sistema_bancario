@@ -1,5 +1,6 @@
 package ar.edu.unju.fi.arquitectura.tp02_sistema_bancario.repository;
 
+import ar.edu.unju.fi.arquitectura.tp02_sistema_bancario.model.TipoTransaccion;
 import ar.edu.unju.fi.arquitectura.tp02_sistema_bancario.model.Transaccion;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
@@ -47,4 +48,9 @@ public interface TransaccionRepository extends JpaRepository<Transaccion, UUID> 
             @Param("inicioDia") LocalDateTime inicioDia,
             @Param("finDia") LocalDateTime finDia
     );
+
+    long countByCuentaBancariaCbuAndTipoAndFechaCreacionBetween(
+            String cbu, TipoTransaccion tipo, LocalDateTime inicio, LocalDateTime fin);
+
+
 }

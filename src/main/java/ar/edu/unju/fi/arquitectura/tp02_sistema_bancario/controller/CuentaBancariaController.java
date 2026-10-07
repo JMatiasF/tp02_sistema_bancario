@@ -1,8 +1,12 @@
 package ar.edu.unju.fi.arquitectura.tp02_sistema_bancario.controller;
 
+import ar.edu.unju.fi.arquitectura.tp02_sistema_bancario.dto.CajaDeAhorroRequestDto;
+import ar.edu.unju.fi.arquitectura.tp02_sistema_bancario.dto.CuentaCorrienteRequestDto;
 import ar.edu.unju.fi.arquitectura.tp02_sistema_bancario.dto.CuentaRequestDto;
 import ar.edu.unju.fi.arquitectura.tp02_sistema_bancario.dto.CuentaResponseDto;
+import ar.edu.unju.fi.arquitectura.tp02_sistema_bancario.service.CajaDeAhorroService;
 import ar.edu.unju.fi.arquitectura.tp02_sistema_bancario.service.CuentaBancariaService;
+import ar.edu.unju.fi.arquitectura.tp02_sistema_bancario.service.CuentaCorrienteService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
@@ -20,16 +24,9 @@ import java.util.List;
 @RequiredArgsConstructor
 public class CuentaBancariaController {
     private final CuentaBancariaService cuentaService;
+    private final CajaDeAhorroService cajaDeAhorroService;
+    private final CuentaCorrienteService cuentaCorrienteService;
 
-    /**
-     * POST /api/v1/cuentas
-     * Crear/Apertura de una cuenta bancaria asociada a un cliente. (201 CREATED)
-     */
-    @PostMapping
-    public ResponseEntity<CuentaResponseDto> crearCuenta(@Valid @RequestBody CuentaRequestDto request) {
-        CuentaResponseDto nuevaCuenta = cuentaService.crearCuenta(request);
-        return ResponseEntity.status(HttpStatus.CREATED).body(nuevaCuenta);
-    }
 
     /**
      * GET /api/v1/cuentas/{cbu}
@@ -42,6 +39,16 @@ public class CuentaBancariaController {
     }
 
     /**
+     * GET /api/v1/cuentas/{alias}
+     * Consultar el detalle de una cuenta bancaria y su saldo actual por alias. (200 OK)
+     */
+    @GetMapping("/alias/{alias}")
+    public ResponseEntity<CuentaResponseDto> consultarCuentaPorAlias(@PathVariable String alias) {
+        CuentaResponseDto cuenta = cuentaService.obtenerPorAlias(alias);
+        return ResponseEntity.ok(cuenta);
+    }
+
+    /**
      * GET /api/v1/cuentas
      * Listar todas las cuentas registradas.
      */
@@ -50,4 +57,6 @@ public class CuentaBancariaController {
         List<CuentaResponseDto> cuentas = cuentaService.listarCuentas();
         return ResponseEntity.ok(cuentas);
     }
+
+
 }

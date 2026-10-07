@@ -10,7 +10,7 @@ import java.util.List;
  * @since 23/09/2026
  */
 public interface CuentaBancariaService {
-    CuentaResponseDto crearCuenta(CuentaRequestDto request);
+    //CuentaResponseDto crearCuenta(CuentaRequestDto request);
     List<CuentaResponseDto> listarCuentas();
     CuentaResponseDto obtenerPorCbu(String cbu);
     CuentaResponseDto obtenerPorAlias(String alias);

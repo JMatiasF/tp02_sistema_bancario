@@ -4,9 +4,8 @@ import ar.edu.unju.fi.arquitectura.tp02_sistema_bancario.dto.CuentaRequestDto;
 import ar.edu.unju.fi.arquitectura.tp02_sistema_bancario.dto.CuentaResponseDto;
 import ar.edu.unju.fi.arquitectura.tp02_sistema_bancario.exception.RecursoNoEncontradoException;
 import ar.edu.unju.fi.arquitectura.tp02_sistema_bancario.model.CajaDeAhorro;
-import ar.edu.unju.fi.arquitectura.tp02_sistema_bancario.model.Cliente;
 import ar.edu.unju.fi.arquitectura.tp02_sistema_bancario.model.CuentaBancaria;
-import ar.edu.unju.fi.arquitectura.tp02_sistema_bancario.repository.ClienteRepository;
+import ar.edu.unju.fi.arquitectura.tp02_sistema_bancario.model.CuentaCorriente;
 import ar.edu.unju.fi.arquitectura.tp02_sistema_bancario.repository.CuentaBancariaRepository;
 import ar.edu.unju.fi.arquitectura.tp02_sistema_bancario.service.CuentaBancariaService;
 import org.springframework.transaction.annotation.Transactional;
@@ -27,27 +26,7 @@ import java.util.List;
 @RequiredArgsConstructor
 public class CuentaBancariaServiceImpl implements CuentaBancariaService {
     private final CuentaBancariaRepository cuentaRepository;
-    private final ClienteRepository clienteRepository;
 
-    @Override
-    @Transactional
-    public CuentaResponseDto crearCuenta(CuentaRequestDto request) {
-        log.info("Registrando nueva cuenta con CBU: {}", request.getCbu());
-
-        Cliente cliente = clienteRepository.findById(request.getClienteId())
-                .orElseThrow(() -> new RecursoNoEncontradoException("Cliente no encontrado con ID: " + request.getClienteId()));
-
-        // Instanciamos una cuenta concreta (por ejemplo, CajaDeAhorro por herencia)
-        CajaDeAhorro cuenta = new CajaDeAhorro();
-        cuenta.setCbu(request.getCbu());
-        cuenta.setAlias(request.getAlias());
-        cuenta.setSaldo(request.getSaldo());
-        cuenta.setEstado(request.getEstado());
-        cuenta.setCliente(cliente);
-
-        CuentaBancaria cuentaGuardada = cuentaRepository.save(cuenta);
-        return mapearAResponseDto(cuentaGuardada);
-    }
 
     @Override
     @Transactional(readOnly = true)
@@ -86,19 +65,31 @@ public class CuentaBancariaServiceImpl implements CuentaBancariaService {
         return mapearAResponseDto(actualizada);
     }
 
-    // Método auxiliar de mapeo Entidad -> DTO Response
+    // Mapeador polimórfico con instanceof para listar correctamente ambos tipos
     private CuentaResponseDto mapearAResponseDto(CuentaBancaria cuenta) {
-        CuentaResponseDto dto = new CuentaResponseDto();
-        dto.setId(cuenta.getId());
-        dto.setCbu(cuenta.getCbu());
-        dto.setAlias(cuenta.getAlias());
-        dto.setSaldo(cuenta.getSaldo());
-        dto.setEstado(cuenta.getEstado());
+        CuentaResponseDto.CuentaResponseDtoBuilder builder = CuentaResponseDto.builder()
+                .id(cuenta.getId())
+                .cbu(cuenta.getCbu())
+                .alias(cuenta.getAlias())
+                .saldo(cuenta.getSaldo())
+                .estado(cuenta.getEstado());
+
         if (cuenta.getCliente() != null) {
-            dto.setClienteId(cuenta.getCliente().getId());
-            dto.setNombreCliente(cuenta.getCliente().getNombre());
+            builder.clienteId(cuenta.getCliente().getId())
+                    .nombreCliente(cuenta.getCliente().getNombre());
         }
-        return dto;
+
+        if (cuenta instanceof CajaDeAhorro caja) {
+            builder.tipoCuenta("CAJA_AHORRO")
+                    .tasaInteresAnual(caja.getTasaInteresAnual())
+                    .cupoLimiteExtraccionMensual(caja.getCupoLimiteExtraccionMensual());
+        } else if (cuenta instanceof CuentaCorriente corriente) {
+            builder.tipoCuenta("CUENTA_CORRIENTE")
+                    .margenDescubierto(corriente.getMargenDescubierto())
+                    .costoComisionMantenimientoMensual(corriente.getCostoComisionMantenimientoMensual());
+        }
+
+        return builder.build();
     }
 
 }

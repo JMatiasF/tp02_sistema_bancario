@@ -1,5 +1,7 @@
 package ar.edu.unju.fi.arquitectura.tp02_sistema_bancario.controller;
 
+import ar.edu.unju.fi.arquitectura.tp02_sistema_bancario.dto.DepositoRequestDto;
+import ar.edu.unju.fi.arquitectura.tp02_sistema_bancario.dto.ExtraccionRequestDto;
 import ar.edu.unju.fi.arquitectura.tp02_sistema_bancario.dto.TransaccionRequestDto;
 import ar.edu.unju.fi.arquitectura.tp02_sistema_bancario.dto.TransaccionResponseDto;
 import ar.edu.unju.fi.arquitectura.tp02_sistema_bancario.service.TransaccionService;
@@ -50,8 +52,20 @@ public class TransaccionController {
     @PostMapping("/extraer/{clienteId}")
     public ResponseEntity<TransaccionResponseDto> extraer(
             @PathVariable UUID clienteId,
-            @Valid @RequestBody TransaccionRequestDto request) {
+            @Valid @RequestBody ExtraccionRequestDto request) {
         TransaccionResponseDto response = transaccionService.extraer(clienteId, request);
+        return new ResponseEntity<>(response, HttpStatus.CREATED);
+    }
+
+    /**
+     * POST /api/v1/transacciones/depositar/{clienteId}
+     * Ejecuta un depósito sumando saldo a la cuenta indicada.
+     */
+    @PostMapping("/depositar/{clienteId}")
+    public ResponseEntity<TransaccionResponseDto> depositar(
+            @PathVariable UUID clienteId,
+            @Valid @RequestBody DepositoRequestDto request) {
+        TransaccionResponseDto response = transaccionService.depositar(clienteId, request);
         return new ResponseEntity<>(response, HttpStatus.CREATED);
     }
 

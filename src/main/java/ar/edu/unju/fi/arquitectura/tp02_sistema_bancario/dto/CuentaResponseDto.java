@@ -44,4 +44,15 @@ public class CuentaResponseDto {
      * Nombre completo del cliente titular para facilitar la lectura en la respuesta.
      */
     private String nombreCliente;
+
+    // Identificador para saber qué tipo de cuenta es al listar
+    private String tipoCuenta;
+
+    // Campos de Caja de Ahorro (serán invisibles si son nulos)
+    private BigDecimal tasaInteresAnual;
+    private Integer cupoLimiteExtraccionMensual;
+
+    // Campos de Cuenta Corriente (serán invisibles si son nulos)
+    private BigDecimal margenDescubierto;
+    private BigDecimal costoComisionMantenimientoMensual;
 }

@@ -1,5 +1,7 @@
 package ar.edu.unju.fi.arquitectura.tp02_sistema_bancario.service;
 
+import ar.edu.unju.fi.arquitectura.tp02_sistema_bancario.dto.DepositoRequestDto;
+import ar.edu.unju.fi.arquitectura.tp02_sistema_bancario.dto.ExtraccionRequestDto;
 import ar.edu.unju.fi.arquitectura.tp02_sistema_bancario.dto.TransaccionRequestDto;
 import ar.edu.unju.fi.arquitectura.tp02_sistema_bancario.dto.TransaccionResponseDto;
 
@@ -14,6 +16,6 @@ public interface TransaccionService {
     TransaccionResponseDto transferir(UUID clienteId, TransaccionRequestDto request);
     List<TransaccionResponseDto> obtenerHistorialPorCbu(String cbu);
 
-    TransaccionResponseDto extraer(UUID clienteId, TransaccionRequestDto request);
-
+    TransaccionResponseDto extraer(UUID clienteId, ExtraccionRequestDto request);
+    TransaccionResponseDto depositar(UUID clienteId, DepositoRequestDto request);
 }

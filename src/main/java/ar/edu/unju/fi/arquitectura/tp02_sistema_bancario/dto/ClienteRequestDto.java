@@ -1,9 +1,14 @@
 package ar.edu.unju.fi.arquitectura.tp02_sistema_bancario.dto;
 
+import ar.edu.unju.fi.arquitectura.tp02_sistema_bancario.model.EstadoCliente;
+import ar.edu.unju.fi.arquitectura.tp02_sistema_bancario.model.RolCliente;
 import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Size;
 import lombok.*;
+
+import java.util.UUID;
 
 /**
  * @author Dell
@@ -49,4 +54,16 @@ public class ClienteRequestDto {
     @NotBlank(message = "El teléfono es obligatorio.")
     @Size(max = 20, message = "El teléfono no puede superar los 20 caracteres.")
     private String telefono;
+
+    @NotNull(message = "El rol del cliente es obligatorio (TITULAR o ADHERENTE)")
+    private RolCliente rol;
+
+    @NotNull(message = "El estado del cliente es obligatorio")
+    private EstadoCliente estado;
+
+    /**
+     * ID del cliente titular.
+     * Es obligatorio si el rol es ADHERENTE, y debe ir en null si es TITULAR.
+     */
+    private UUID titularId;
 }

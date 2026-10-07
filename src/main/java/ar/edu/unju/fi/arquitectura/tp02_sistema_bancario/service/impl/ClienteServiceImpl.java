@@ -4,6 +4,7 @@ import ar.edu.unju.fi.arquitectura.tp02_sistema_bancario.dto.ClienteRequestDto;
 import ar.edu.unju.fi.arquitectura.tp02_sistema_bancario.dto.ClienteResponseDto;
 import ar.edu.unju.fi.arquitectura.tp02_sistema_bancario.exception.RecursoNoEncontradoException;
 import ar.edu.unju.fi.arquitectura.tp02_sistema_bancario.model.Cliente;
+import ar.edu.unju.fi.arquitectura.tp02_sistema_bancario.model.RolCliente;
 import ar.edu.unju.fi.arquitectura.tp02_sistema_bancario.repository.ClienteRepository;
 import ar.edu.unju.fi.arquitectura.tp02_sistema_bancario.service.ClienteService;
 import org.springframework.transaction.annotation.Transactional;
@@ -42,7 +43,31 @@ public class ClienteServiceImpl implements ClienteService {
                 .email(requestDto.getEmail())
                 .direccion(requestDto.getDireccion())
                 .telefono(requestDto.getTelefono())
+                .rol(requestDto.getRol())
+                .estado(requestDto.getEstado())
                 .build();
+
+        // 2. Lógica específica para la relación recursiva Titular / Adherente
+        if (requestDto.getRol() == RolCliente.ADHERENTE) {
+            if (requestDto.getTitularId() == null) {
+                throw new IllegalArgumentException("El ID del titular es obligatorio para un cliente adherente.");
+            }
+
+            // Buscar el cliente titular en la base de datos
+            Cliente titular = clienteRepository.findById(requestDto.getTitularId())
+                    .orElseThrow(() -> new RecursoNoEncontradoException("Cliente titular no encontrado con ID: " + requestDto.getTitularId()));
+
+            // Validar opcionalmente que el cliente encontrado sea efectivamente un TITULAR
+            if (titular.getRol() != RolCliente.TITULAR) {
+                throw new IllegalStateException("El cliente asignado como titular no tiene el rol de TITULAR.");
+            }
+
+            // Asignar la relación
+            clienteNuevo.setTitular(titular);
+        } else {
+            // Si es TITULAR, nos aseguramos de que no tenga un titular asignado
+            clienteNuevo.setTitular(null);
+        }
 
         clienteNuevo = clienteRepository.save(clienteNuevo);
         log.info("Cliente creado correctamente.");
@@ -101,6 +126,9 @@ public class ClienteServiceImpl implements ClienteService {
         clienteExistente.setEmail(requestDto.getEmail());
         clienteExistente.setDireccion(requestDto.getDireccion());
         clienteExistente.setTelefono(requestDto.getTelefono());
+        clienteExistente.setRol(requestDto.getRol());
+        clienteExistente.setEstado(requestDto.getEstado());
+
 
         Cliente clienteActualizado = clienteRepository.save(clienteExistente);
         log.info("Datos actualizados correctamente.");
@@ -130,6 +158,10 @@ public class ClienteServiceImpl implements ClienteService {
                 .email(cliente.getEmail())
                 .direccion(cliente.getDireccion())
                 .telefono(cliente.getTelefono())
+                .rol(cliente.getRol())
+                .estado(cliente.getEstado())
+                .titularId(cliente.getTitular() != null ? cliente.getTitular().getId() : null)
+
                 .fechaCreacion(cliente.getFechaCreacion())
                 .fechaModificacion(cliente.getFechaUltimaModificacion())
                 .build();

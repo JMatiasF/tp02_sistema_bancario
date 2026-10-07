@@ -1,5 +1,6 @@
 package ar.edu.unju.fi.arquitectura.tp02_sistema_bancario.service;
 
+import ar.edu.unju.fi.arquitectura.tp02_sistema_bancario.dto.ClienteResponseDto;
 import ar.edu.unju.fi.arquitectura.tp02_sistema_bancario.model.Cliente;
 import ar.edu.unju.fi.arquitectura.tp02_sistema_bancario.repository.ClienteRepository;
 import ar.edu.unju.fi.arquitectura.tp02_sistema_bancario.service.impl.ClienteServiceImpl;
@@ -47,7 +48,7 @@ public class ClienteServiceTest {
         when(clienteRepository.findById(clienteId)).thenReturn(Optional.of(clienteEsperado));
 
         // 2. ACT (Ejecución de la unidad a probar)
-        Cliente resultado = clienteService.obtenerPorId(clienteId);
+        ClienteResponseDto resultado = clienteService.obtenerPorId(clienteId);
 
         // 3. ASSERT (Verificación del resultado obtenido contra el esperado)
         assertNotNull(resultado);
@@ -69,7 +70,7 @@ public class ClienteServiceTest {
 
         // Act & Assert
         Exception excepcion = assertThrows(RuntimeException.class, () -> {
-            clienteService.buscarPorId(idInexistente);
+            clienteService.obtenerPorId(idInexistente);
         });
 
         assertTrue(excepcion.getMessage().contains("Cliente no encontrado"));

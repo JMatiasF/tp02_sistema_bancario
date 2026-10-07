@@ -1,5 +1,7 @@
 package ar.edu.unju.fi.arquitectura.tp02_sistema_bancario.service.impl;
 
+import ar.edu.unju.fi.arquitectura.tp02_sistema_bancario.dto.DepositoRequestDto;
+import ar.edu.unju.fi.arquitectura.tp02_sistema_bancario.dto.ExtraccionRequestDto;
 import ar.edu.unju.fi.arquitectura.tp02_sistema_bancario.dto.TransaccionRequestDto;
 import ar.edu.unju.fi.arquitectura.tp02_sistema_bancario.dto.TransaccionResponseDto;
 import ar.edu.unju.fi.arquitectura.tp02_sistema_bancario.exception.RecursoNoEncontradoException;
@@ -31,6 +33,7 @@ import java.util.UUID;
 public class TransaccionserviceImpl implements TransaccionService {
     private final CuentaBancariaRepository cuentaRepository;
     private final TransaccionRepository transaccionRepository;
+
     /** Para verificar el rol del cliente */
     private final ClienteRepository clienteRepository;
     /** Para los limites diarios */
@@ -68,6 +71,12 @@ public class TransaccionserviceImpl implements TransaccionService {
         if (origen.getCbu().equals(destino.getCbu())) {
             throw new IllegalArgumentException("No es posible realizar una transferencia hacia la misma cuenta de origen.");
         }
+        // Considerar Descubierto para Cuenta Corriente
+        BigDecimal saldoDisponible = origen.getSaldo();
+        if (origen instanceof CuentaCorriente cuentaCorriente) {
+            BigDecimal margen = cuentaCorriente.getMargenDescubierto() != null ? cuentaCorriente.getMargenDescubierto() : BigDecimal.ZERO;
+            saldoDisponible = saldoDisponible.add(margen);
+        }
 
         // 3. Verificación de saldo suficiente en la cuenta de origen
         if (origen.getSaldo().compareTo(request.getMonto()) < 0) {
@@ -96,6 +105,7 @@ public class TransaccionserviceImpl implements TransaccionService {
                 .tipo(TipoTransaccion.TRANSFERECNIA_RECIBIDA)
                 .estado(EstadoTransaccion.COMPLETADA)
                 .cuentaBancaria(destino)
+                .cliente(cliente)
                 .build();
 
         transaccionRepository.save(auditoriaOrigen);
@@ -137,7 +147,7 @@ public class TransaccionserviceImpl implements TransaccionService {
      */
     @Override
     @Transactional
-    public TransaccionResponseDto extraer(UUID clienteId, TransaccionRequestDto request) {
+    public TransaccionResponseDto extraer(UUID clienteId, ExtraccionRequestDto request) {
         log.info("Iniciando extracción para el cliente ID: {} sobre CBU: {} por un monto de {}",
                 clienteId, request.getCbuOrigen(), request.getMonto());
 
@@ -152,6 +162,28 @@ public class TransaccionserviceImpl implements TransaccionService {
 
         // 3. Validar el tope diario acumulado antes de procesar
         validarTopeDiarioExtraccion(cliente, request.getMonto());
+
+        // Validar cupo mensual si es Caja de Ahorro
+        if (cuenta instanceof CajaDeAhorro cajaDeAhorro) {
+            LocalDateTime inicioMes = LocalDateTime.now().withDayOfMonth(1).with(LocalTime.MIN);
+            LocalDateTime finMes = LocalDateTime.now().withDayOfMonth(LocalDateTime.now().toLocalDate().lengthOfMonth()).with(LocalTime.MAX);
+
+            // Contamos las extracciones realizadas en el mes actual usando el campo fechaCreacion
+            long extraccionesRealizadas = transaccionRepository.countByCuentaBancariaCbuAndTipoAndFechaCreacionBetween(
+                    cuenta.getCbu(), TipoTransaccion.EXTRACCION, inicioMes, finMes);
+
+            if (extraccionesRealizadas >= cajaDeAhorro.getCupoLimiteExtraccionMensual()) {
+                throw new IllegalArgumentException(
+                        "Se ha superado el cupo límite de extracciones mensuales sin costo (" + cajaDeAhorro.getCupoLimiteExtraccionMensual() + ").");
+            }
+        }
+
+        //(Extracción): Considerar Descubierto si es Cuenta Corriente
+        BigDecimal saldoDisponible = cuenta.getSaldo();
+        if (cuenta instanceof CuentaCorriente cuentaCorriente) {
+            BigDecimal margen = cuentaCorriente.getMargenDescubierto() != null ? cuentaCorriente.getMargenDescubierto() : BigDecimal.ZERO;
+            saldoDisponible = saldoDisponible.add(margen);
+        }
 
         // 4. Verificación de saldo suficiente
         if (cuenta.getSaldo().compareTo(request.getMonto()) < 0) {
@@ -207,5 +239,43 @@ public class TransaccionserviceImpl implements TransaccionService {
                             limitePermitido, totalExtraidoHoy, disponible)
             );
         }
+    }
+    @Override
+    @Transactional
+    public TransaccionResponseDto depositar(UUID clienteId, DepositoRequestDto request) {
+        log.info("Iniciando depósito para el cliente ID: {} en CBU: {} por un monto de {}",
+                clienteId, request.getCbu(), request.getMonto());
+
+        // 1. Validar cliente y cuenta
+        Cliente cliente = clienteRepository.findById(clienteId)
+                .orElseThrow(() -> new RecursoNoEncontradoException("Cliente no encontrado con ID: " + clienteId));
+
+        CuentaBancaria cuenta = cuentaRepository.findByCbu(request.getCbu())
+                .orElseThrow(() -> new RecursoNoEncontradoException("Cuenta bancaria no registrada con CBU: " + request.getCbu()));
+
+        // 2. Acreditar el saldo (sumar)
+        cuenta.setSaldo(cuenta.getSaldo().add(request.getMonto()));
+        cuentaRepository.save(cuenta);
+
+        // 3. Registrar la transacción de auditoría
+        // NOTA: Asegúrate de tener "DEPOSITO" definido en tu Enum TipoTransaccion
+        Transaccion deposito = Transaccion.builder()
+                .monto(request.getMonto())
+                .tipo(TipoTransaccion.DEPOSITO)
+                .estado(EstadoTransaccion.COMPLETADA)
+                .cuentaBancaria(cuenta)
+                .cliente(cliente)
+                .build();
+
+        transaccionRepository.save(deposito);
+        log.info("Depósito completado exitosamente. ID de transacción: {}", deposito.getId());
+
+        return TransaccionResponseDto.builder()
+                .idTransaccion(deposito.getId())
+                .monto(request.getMonto())
+                .tipo(deposito.getTipo())
+                .estado(deposito.getEstado())
+                .cbuDestino(cuenta.getCbu()) // Usamos cbuDestino para indicar a dónde entró la plata
+                .build();
     }
 }
