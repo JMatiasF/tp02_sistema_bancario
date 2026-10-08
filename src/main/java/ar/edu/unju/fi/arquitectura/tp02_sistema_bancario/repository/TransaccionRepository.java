@@ -41,7 +41,7 @@ public interface TransaccionRepository extends JpaRepository<Transaccion, UUID> 
     @Query("SELECT COALESCE(SUM(t.monto), 0) FROM Transaccion t " +
             "WHERE t.cliente.id = :clienteId " +
             "AND t.tipo = 'EXTRACCION' " + // Usando el atributo 'tipo' de tu entidad
-            "AND t.estado = 'EXITOSA' " +  // O el nombre exacto de tu estado positivo
+            "AND t.estado = 'COMPLETADA' " +  // O el nombre exacto de tu estado positivo
             "AND t.fechaCreacion BETWEEN :inicioDia AND :finDia") // Usando el campo heredado de AuditableEntity
     BigDecimal calcularTotalExtraccionesDiariasPorCliente(
             @Param("clienteId") UUID clienteId,
