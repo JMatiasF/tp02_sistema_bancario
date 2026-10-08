@@ -2,15 +2,20 @@ package ar.edu.unju.fi.arquitectura.tp02_sistema_bancario.service.impl;
 
 import ar.edu.unju.fi.arquitectura.tp02_sistema_bancario.dto.ClienteRequestDto;
 import ar.edu.unju.fi.arquitectura.tp02_sistema_bancario.dto.ClienteResponseDto;
+import ar.edu.unju.fi.arquitectura.tp02_sistema_bancario.event.ClienteCreadoEvent;
 import ar.edu.unju.fi.arquitectura.tp02_sistema_bancario.exception.RecursoNoEncontradoException;
+import ar.edu.unju.fi.arquitectura.tp02_sistema_bancario.exception.TokenActivacionInvalidoException;
 import ar.edu.unju.fi.arquitectura.tp02_sistema_bancario.model.Cliente;
+import ar.edu.unju.fi.arquitectura.tp02_sistema_bancario.model.EstadoCliente;
 import ar.edu.unju.fi.arquitectura.tp02_sistema_bancario.repository.ClienteRepository;
 import ar.edu.unju.fi.arquitectura.tp02_sistema_bancario.service.ClienteService;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.context.ApplicationEventPublisher;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.UUID;
 import java.util.stream.Collectors;
@@ -24,6 +29,7 @@ import java.util.stream.Collectors;
 @RequiredArgsConstructor
 public class ClienteServiceImpl implements ClienteService {
     private final ClienteRepository clienteRepository;
+    private final ApplicationEventPublisher eventPublisher;
 
     @Override
     @Transactional
@@ -44,8 +50,20 @@ public class ClienteServiceImpl implements ClienteService {
                 .telefono(requestDto.getTelefono())
                 .build();
 
+        clienteNuevo.setEstado(EstadoCliente.PENDIENTE_ACTIVACION);
+
+        clienteNuevo.setTokenActivacion(
+                UUID.randomUUID().toString()
+        );
+
+        clienteNuevo.setTokenActivacionExpira(
+                LocalDateTime.now().plusHours(24)
+        );
+
         clienteNuevo = clienteRepository.save(clienteNuevo);
         log.info("Cliente creado correctamente.");
+
+        eventPublisher.publishEvent(new ClienteCreadoEvent(this, clienteNuevo));
 
         return mapearAResponseDto(clienteNuevo);
     }
@@ -117,6 +135,23 @@ public class ClienteServiceImpl implements ClienteService {
 
         clienteRepository.delete(cliente);
         log.info("Cliente con ID {} eliminado correctamente", id);
+    }
+
+    @Override
+    @Transactional
+    public void activarCliente(String token) {
+
+        Cliente cliente = clienteRepository
+                .findByTokenActivacion(token)
+                .orElseThrow(() -> new TokenActivacionInvalidoException("Token de activación inválido"));
+        if (cliente.getTokenActivacionExpira() == null || cliente.getTokenActivacionExpira().isBefore(LocalDateTime.now())) {
+            throw new TokenActivacionInvalidoException("El token de activación ha expirado");
+        }
+
+        cliente.setEstado(EstadoCliente.ACTIVO);
+        cliente.setTokenActivacion(null);
+        cliente.setTokenActivacionExpira(null);
+        clienteRepository.save(cliente);
     }
 
     // Método centralizado para el mapeo Entity -> DTO

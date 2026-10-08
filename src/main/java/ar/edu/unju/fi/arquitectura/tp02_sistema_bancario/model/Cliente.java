@@ -3,6 +3,7 @@ package ar.edu.unju.fi.arquitectura.tp02_sistema_bancario.model;
 import jakarta.persistence.*;
 import lombok.*;
 
+import java.time.LocalDateTime;
 import java.util.UUID;
 import java.util.ArrayList;
 import java.util.List;
@@ -59,9 +60,12 @@ public class Cliente extends AuditableEntity {
     @Builder.Default
     private List<CuentaBancaria> cuentas = new ArrayList<>();
 
+    private String tokenActivacion;
 
+    private LocalDateTime tokenActivacionExpira;
 
-
+    @Enumerated(EnumType.STRING)
+    private EstadoCliente estado;
 
 
 

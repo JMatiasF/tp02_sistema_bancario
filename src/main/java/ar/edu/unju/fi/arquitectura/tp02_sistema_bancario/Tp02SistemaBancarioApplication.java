@@ -3,6 +3,7 @@ package ar.edu.unju.fi.arquitectura.tp02_sistema_bancario;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.data.jpa.repository.config.EnableJpaAuditing;
+import org.springframework.scheduling.annotation.EnableAsync;
 
 /**
  *Punto de entrada principal de la aplicación Sistema Bancario
@@ -11,6 +12,7 @@ import org.springframework.data.jpa.repository.config.EnableJpaAuditing;
 
 @EnableJpaAuditing
 @SpringBootApplication
+@EnableAsync
 public class Tp02SistemaBancarioApplication {
 
     public static void main(String[] args) {

@@ -19,4 +19,5 @@ public interface ClienteService {
     ClienteResponseDto actualizarCliente(UUID id, ClienteRequestDto requestDto);
     List<ClienteResponseDto> listClientes();
     void eliminarPorId(UUID id);
+    void activarCliente(String token);
 }

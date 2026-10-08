@@ -96,5 +96,18 @@ public class ClienteController {
         clienteService.eliminarPorId(id);
         return ResponseEntity.noContent().build();
     }
+
+    /**
+     * Se encarga de activar la cuenta del cliente
+     * @param token
+     * @return HTTP 204, terminado exitosamente
+     */
+    @GetMapping("/activar")
+    public ResponseEntity<Void> activarCliente(@RequestParam String token) {
+
+        clienteService.activarCliente(token);
+
+        return ResponseEntity.noContent().build();
+    }
 }
 
