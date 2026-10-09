@@ -5,6 +5,7 @@ import ar.edu.unju.fi.arquitectura.tp02_sistema_bancario.model.TipoTransaccion;
 import lombok.*;
 
 import java.math.BigDecimal;
+import java.time.LocalDateTime;
 import java.util.UUID;
 
 /**
@@ -23,4 +24,5 @@ public class TransaccionResponseDto {
     private EstadoTransaccion estado;
     private String cbuOrigen;
     private String cbuDestino;
+    private LocalDateTime fechaCreacion;
 }

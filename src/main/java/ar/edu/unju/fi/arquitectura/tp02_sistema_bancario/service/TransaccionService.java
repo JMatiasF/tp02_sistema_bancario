@@ -14,7 +14,7 @@ import java.util.UUID;
  */
 public interface TransaccionService {
     TransaccionResponseDto transferir(UUID clienteId, TransaccionRequestDto request);
-    List<TransaccionResponseDto> obtenerHistorialPorCbu(String cbu);
+    List<TransaccionResponseDto> obtenerHistorialPorId(UUID id);
 
     TransaccionResponseDto extraer(UUID clienteId, ExtraccionRequestDto request);
     TransaccionResponseDto depositar(UUID clienteId, DepositoRequestDto request);

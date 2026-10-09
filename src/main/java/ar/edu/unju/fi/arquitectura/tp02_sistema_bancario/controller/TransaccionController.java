@@ -37,12 +37,12 @@ public class TransaccionController {
     }
 
     /**
-     * GET /api/v1/transacciones/cuenta/{cbu}
+     * GET /api/v1/transacciones/cuenta/{cuentaID}
      * Obtiene el historial de transacciones de una cuenta bancaria específica.
      */
-    @GetMapping("/cuenta/{cbu}")
-    public ResponseEntity<List<TransaccionResponseDto>> obtenerHistorialPorCbu(@PathVariable String cbu) {
-        List<TransaccionResponseDto> historial = transaccionService.obtenerHistorialPorCbu(cbu);
+    @GetMapping("/cuenta/{cuentaId}")
+    public ResponseEntity<List<TransaccionResponseDto>> obtenerHistorialPorId(@PathVariable UUID cuentaId) {
+        List<TransaccionResponseDto> historial = transaccionService.obtenerHistorialPorId(cuentaId);
         return ResponseEntity.ok(historial);
     }
     /**

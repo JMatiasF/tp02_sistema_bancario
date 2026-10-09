@@ -125,9 +125,9 @@ public class TransaccionserviceImpl implements TransaccionService {
 
     @Override
     @Transactional
-    public List<TransaccionResponseDto> obtenerHistorialPorCbu(String cbu) {
+    public List<TransaccionResponseDto> obtenerHistorialPorId(UUID id) {
         // Usamos el repositorio para buscar por CBU
-        List<Transaccion> historial = transaccionRepository.findByCuentaBancariaCbu(cbu);
+        List<Transaccion> historial = transaccionRepository.findByCuentaBancariaIdOrderByFechaCreacionDesc(id);
 
         // Convertimos la lista de Entidades a una lista de DTOs para no exponer la base de datos
         return historial.stream()
@@ -136,8 +136,9 @@ public class TransaccionserviceImpl implements TransaccionService {
                         .monto(t.getMonto())
                         .tipo(t.getTipo())
                         .estado(t.getEstado())
-                        // Asumimos que la transacción siempre tiene una cuenta asociada
                         .cbuOrigen(t.getCuentaBancaria().getCbu())
+
+                        .fechaCreacion(t.getFechaCreacion())
                         .build())
                 .toList();
     }
